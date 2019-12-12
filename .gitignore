@@ -3,4 +3,6 @@ sessions/*
 
 !sessions/.gitkeep
 
+storage/*
+!storage/.gitkeep
 *.exe

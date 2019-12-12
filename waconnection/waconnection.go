@@ -14,7 +14,7 @@ import (
 
 	qrcodeTerminal "github.com/Baozisoftware/qrcode-terminal-go"
 	whatsapp "github.com/Rhymen/go-whatsapp"
-	model "github.com/renato-macedo/whatsapi/model"
+	models "github.com/renato-macedo/whatsapi/models"
 )
 
 // MessageHandler is responsible for handling messages
@@ -61,8 +61,10 @@ func (h *MessageHandler) HandleImageMessage(message whatsapp.ImageMessage) {
 		}
 	}
 
+	userID := h.c.Info.Wid
 	// create a folder with the name of the receiver
-	directory := filepath.Join(".", "userid", "images")
+	directory := filepath.Join("./storage", userID, "images")
+	fmt.Printf("RemoteJid \t %v", message.Info.RemoteJid)
 	fmt.Println(directory)
 	errOnCreate := os.MkdirAll(directory, os.ModePerm)
 
@@ -77,7 +79,7 @@ func (h *MessageHandler) HandleImageMessage(message whatsapp.ImageMessage) {
 		return
 	}
 
-	filename := fmt.Sprintf("%v/%v/%v/%v.%v", dir, "userid", "images", "kkkkkkkk", strings.Split(message.Type, "/")[1])
+	filename := fmt.Sprintf("%v/%v/%v/%v/%v.%v", dir, "storage", userID, "images", message.Info.Id, strings.Split(message.Type, "/")[1])
 	file, err := os.Create(filename)
 	defer file.Close()
 	if err != nil {
@@ -87,15 +89,15 @@ func (h *MessageHandler) HandleImageMessage(message whatsapp.ImageMessage) {
 	if err != nil {
 		return
 	}
-	log.Printf("%v %v\n\timage reveived, saved at:%v\n", message.Info.Timestamp, "toptoptop", filename)
+	log.Printf("%v\timage received, saved at:%v\n", message.Info.Timestamp, filename)
 
 }
 
 // NewConnection start a new connection :)
-func NewConnection(username string, done chan model.Result) {
+func NewConnection(username string, done chan models.Result) {
 	//create new WhatsApp connection
 	wac, err := whatsapp.NewConn(5 * time.Second)
-	var r model.Result
+	var r models.Result
 	if err != nil {
 		log.Fatalf("error creating connection: %v\n", err)
 	}
@@ -128,18 +130,14 @@ func NewConnection(username string, done chan model.Result) {
 	//Disconnect safe
 	fmt.Println("Shutting down now.")
 	session, err := wac.Disconnect()
+
 	if err != nil {
-		r.Success = false
-		r.Message = fmt.Sprintf("error disconnecting: %v\n", err)
-		done <- r
-		return
+		log.Fatalf("error disconnecting: %v\n", err)
 	}
+
 	if err := writeSession(session, username); err != nil {
 		//log.Fatalf("error saving session: %v", err)
-		r.Success = false
-		r.Message = fmt.Sprintf("error logging in: %v", err)
-		done <- r
-		return
+		log.Fatalf("error saving session: %v", err)
 	}
 }
 
@@ -153,7 +151,7 @@ func login(wac *whatsapp.Conn, sessionName string) error {
 			return fmt.Errorf("restoring failed: %v", err)
 		}
 	} else {
-		fmt.Println(err)
+
 		// no saved session -> regular login
 		qr := make(chan string)
 		go func() {
@@ -179,17 +177,16 @@ func login(wac *whatsapp.Conn, sessionName string) error {
 
 func readSession(sessionName string) (whatsapp.Session, error) {
 	session := whatsapp.Session{}
-	dir, er := os.Getwd()
+	wd, er := os.Getwd()
 	if er != nil {
-		fmt.Printf("Error opening session file 1 %v", sessionName)
+		fmt.Printf("Error getting the working directory %v", sessionName)
 		return session, er
 	}
-	filename := fmt.Sprintf("%v\\%v\\%v.%v", dir, "sessions", sessionName, "gob")
-	fmt.Println(filename)
-	///file, err := os.Create(filename)
+	filename := fmt.Sprintf("%v\\%v\\%v.%v", wd, "sessions", sessionName, "gob")
+	//file, err := os.Create(filename)
 	file, err := os.Open(filename)
 	if err != nil {
-		fmt.Printf("Error opening session file 2 %v", err)
+		fmt.Printf("Error opening session file %v", err)
 		return session, err
 	}
 
@@ -205,7 +202,6 @@ func readSession(sessionName string) (whatsapp.Session, error) {
 
 func writeSession(session whatsapp.Session, sessionName string) error {
 	dir, er := os.Getwd()
-	fmt.Println("to aqui " + dir)
 	if er != nil {
 		return er
 	}
