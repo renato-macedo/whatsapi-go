@@ -75,8 +75,8 @@ func (h *MessageHandler) HandleImageMessage(message whatsapp.ImageMessage) {
 	dir, er := os.Getwd()
 	// fmt.Println(dir)
 	if er != nil {
-		fmt.Errorf("error %v", er)
-		return
+		er = fmt.Errorf("error %v", er)
+		return er
 	}
 
 	filename := fmt.Sprintf("%v/%v/%v/%v/%v.%v", dir, "storage", userID, "images", message.Info.Id, strings.Split(message.Type, "/")[1])
@@ -120,9 +120,11 @@ func NewConnection(username string, done chan models.Result) {
 	if !pong || err != nil {
 		log.Fatalf("error pinging in: %v\n", err)
 	}
+	// diz para a outra goroutine que tudo deu certo
 	r.Success = true
 	r.Message = "ok"
 	done <- r
+
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	<-c

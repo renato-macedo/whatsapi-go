@@ -2,11 +2,12 @@ package controllers
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/labstack/echo"
 	models "github.com/renato-macedo/whatsapi/models"
+	utils "github.com/renato-macedo/whatsapi/utils"
 	waconnection "github.com/renato-macedo/whatsapi/waconnection"
-	"net/http"
-	"os"
 )
 
 // CreateSession handles the request for a new session
@@ -18,18 +19,17 @@ func CreateSession(c echo.Context) error {
 		fmt.Printf("%v", err)
 		return err
 	}
-	// obtendo a lista de nomes do arquivos que existem na pasta sessions
-	folder, err := os.Open("./sessions")
-	files, err := folder.Readdirnames(-1)
-
-	// verificando pelo nome se a sessao já existe
-	for _, filename := range files {
-		if session.Name+".gob" == filename {
-			// se existir entao cria-se um objeto para se enviar na resposta
-			response := &models.Response{Success: false, Message: "Esta sessão já existe"}
-			return c.JSON(http.StatusOK, response)
-		}
+	sessionExists, err := utils.SessionExists(session.Name)
+	if err != nil {
+		response := &models.Response{Success: false, Message: "Erro no servidor"}
+		return c.JSON(http.StatusInternalServerError, response)
 	}
+	if sessionExists {
+		// se existir entao cria-se um objeto para se enviar na resposta
+		response := &models.Response{Success: false, Message: "Esta sessão já existe"}
+		return c.JSON(http.StatusOK, response)
+	}
+
 	done := make(chan models.Result)
 	go waconnection.NewConnection(session.Name, done)
 
@@ -44,13 +44,30 @@ func CreateSession(c echo.Context) error {
 
 // SendText handles the request to send new text messages
 func SendText(c echo.Context) error {
+	id := c.Param("id")
+	sessionExists, err := utils.SessionExists(id)
+	if err != nil {
+		response := &models.Response{Success: false, Message: "Erro no servidor"}
+		return c.JSON(http.StatusInternalServerError, response)
+	}
+
+	// check if the id exists
+	if !sessionExists {
+		response := &models.Response{Success: false, Message: "Sessão não existe"}
+		return c.JSON(http.StatusInternalServerError, response)
+	}
+
 	message := &models.Message{}
 
-	err := c.Bind(message)
+	err = c.Bind(message)
+
 	if err != nil {
 		fmt.Printf("%v", err)
 		return err
 	}
+	waconnection.
+		waconnection.SendTextMessage(wac, number, text)
+
 	return c.JSON(http.StatusOK, message)
 }
 

@@ -13,6 +13,6 @@ func main() {
 	e := echo.New()
 
 	e.POST("/session", controllers.CreateSession)
-	e.POST("/sendText", controllers.SendText)
+	e.POST("/:id/sendText", controllers.SendText)
 	e.Logger.Fatal(e.Start(":1323"))
 }

@@ -8,7 +8,8 @@ import (
 	"os"
 )
 
-func sendTextMessage(wac *whatsapp.Conn, number string, text string) {
+// SendTextMessage recebe a conexao, o número destinatário e o texto da mensagem
+func SendTextMessage(wac *whatsapp.Conn, number string, text string) {
 
 	message := whatsapp.TextMessage{
 		Info: whatsapp.MessageInfo{
@@ -26,4 +27,5 @@ func sendTextMessage(wac *whatsapp.Conn, number string, text string) {
 	}
 }
 
-func sendImageMessage(wac *whatsapp.Conn, number string, filename string) {}
+// SendImageMessage recebe a conexao, o número destinatário e a url da imagem
+func SendImageMessage(wac *whatsapp.Conn, number string, filename string) {}
