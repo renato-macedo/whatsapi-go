@@ -13,13 +13,13 @@ import (
 // CreateSession handles the request for a new session
 func CreateSession(c echo.Context) error {
 	// criando uma "instancia" do objeto que virá no request
-	session := &models.Session{}
-	err := c.Bind(session)
+	SessionDTO := &models.Session{}
+	err := c.Bind(SessionDTO)
 	if err != nil {
 		fmt.Printf("%v", err)
 		return err
 	}
-	sessionExists, err := utils.SessionExists(session.Name)
+	sessionExists, err := utils.SessionExists(SessionDTO.Name)
 	if err != nil {
 		response := &models.Response{Success: false, Message: "Erro no servidor"}
 		return c.JSON(http.StatusInternalServerError, response)
@@ -31,7 +31,7 @@ func CreateSession(c echo.Context) error {
 	}
 
 	done := make(chan models.Result)
-	go waconnection.NewConnection(session.Name, done)
+	go waconnection.NewConnection(SessionDTO.Name, done)
 
 	result := <-done
 	if result.Success == true {
@@ -45,15 +45,15 @@ func CreateSession(c echo.Context) error {
 // SendText handles the request to send new text messages
 func SendText(c echo.Context) error {
 	id := c.Param("id")
-	sessionExists, err := utils.SessionExists(id)
+	connectionIsActive, err := utils.ConnectionIsActive(waconnection.Connections, id)
 	if err != nil {
 		response := &models.Response{Success: false, Message: "Erro no servidor"}
 		return c.JSON(http.StatusInternalServerError, response)
 	}
 
 	// check if the id exists
-	if !sessionExists {
-		response := &models.Response{Success: false, Message: "Sessão não existe"}
+	if !connectionIsActive {
+		response := &models.Response{Success: false, Message: "Conexao não está ativa"}
 		return c.JSON(http.StatusInternalServerError, response)
 	}
 
@@ -65,10 +65,27 @@ func SendText(c echo.Context) error {
 		fmt.Printf("%v", err)
 		return err
 	}
-	waconnection.
-		waconnection.SendTextMessage(wac, number, text)
+	wac := utils.FindConnectionByID(waconnection.Connections, id)
+	if wac == nil {
+		return c.JSON(http.StatusOK, &models.Response{Success: false, Message: "Could not find connection"})
+	}
+	err = waconnection.SendTextMessage(wac, message.Number, message.Text)
 
-	return c.JSON(http.StatusOK, message)
+	if err != nil {
+		return c.JSON(http.StatusOK, &models.Response{Success: false, Message: "Something is wrong with the whatsapp"})
+	}
+
+	return c.JSON(http.StatusOK, &models.Response{Success: true, Message: "Message sent"})
+}
+
+// GetConnections return all conections must be deleted later
+func GetConnections(c echo.Context) error {
+	var connectionNames []string
+	for _, conection := range waconnection.Connections {
+		connectionNames = append(connectionNames, conection.Info.Wid)
+	}
+	response := fmt.Sprintf("conexoes %v", connectionNames)
+	return c.String(http.StatusOK, response)
 }
 
 // SendImage handles the request to send a image

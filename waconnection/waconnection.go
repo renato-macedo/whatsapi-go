@@ -15,7 +15,11 @@ import (
 	qrcodeTerminal "github.com/Baozisoftware/qrcode-terminal-go"
 	whatsapp "github.com/Rhymen/go-whatsapp"
 	models "github.com/renato-macedo/whatsapi/models"
+	actions "github.com/renato-macedo/whatsapi/actions"
 )
+
+// Connections store all active sessions on whatsapp
+var Connections []*whatsapp.Conn
 
 // MessageHandler is responsible for handling messages
 type MessageHandler struct {
@@ -41,6 +45,7 @@ func (h *MessageHandler) HandleError(err error) {
 
 // HandleTextMessage Optional to be implemented. Implement HandleXXXMessage for the types you need.
 func (h *MessageHandler) HandleTextMessage(message whatsapp.TextMessage) {
+	actions.NotifyTextMessage(message.Info.RemoteJid, message.Text, "http://localhost:3000/go")
 	fmt.Printf("%v %v %v %v\n\t%v\n", message.Info.Timestamp, message.Info.Id, message.Info.RemoteJid, message.ContextInfo.QuotedMessageID, message.Text)
 }
 
@@ -76,7 +81,8 @@ func (h *MessageHandler) HandleImageMessage(message whatsapp.ImageMessage) {
 	// fmt.Println(dir)
 	if er != nil {
 		er = fmt.Errorf("error %v", er)
-		return er
+		fmt.Printf("%v", er)
+
 	}
 
 	filename := fmt.Sprintf("%v/%v/%v/%v/%v.%v", dir, "storage", userID, "images", message.Info.Id, strings.Split(message.Type, "/")[1])
@@ -94,7 +100,7 @@ func (h *MessageHandler) HandleImageMessage(message whatsapp.ImageMessage) {
 }
 
 // NewConnection start a new connection :)
-func NewConnection(username string, done chan models.Result) {
+func NewConnection(sessionName string, done chan models.Result) {
 	//create new WhatsApp connection
 	wac, err := whatsapp.NewConn(5 * time.Second)
 	var r models.Result
@@ -106,7 +112,7 @@ func NewConnection(username string, done chan models.Result) {
 	wac.AddHandler(&MessageHandler{wac})
 
 	//login or restore
-	if err := login(wac, username); err != nil {
+	if err := login(wac, sessionName); err != nil {
 		//log.Fatalf("error logging in: %v", err)
 		r.Success = false
 		r.Message = fmt.Sprintf("error logging in: %v", err)
@@ -120,6 +126,10 @@ func NewConnection(username string, done chan models.Result) {
 	if !pong || err != nil {
 		log.Fatalf("error pinging in: %v\n", err)
 	}
+
+	// adiciona a nova conexão no slice
+	Connections = append(Connections, wac)
+
 	// diz para a outra goroutine que tudo deu certo
 	r.Success = true
 	r.Message = "ok"
@@ -137,7 +147,7 @@ func NewConnection(username string, done chan models.Result) {
 		log.Fatalf("error disconnecting: %v\n", err)
 	}
 
-	if err := writeSession(session, username); err != nil {
+	if err := writeSession(session, wac.Info.Wid); err != nil {
 		//log.Fatalf("error saving session: %v", err)
 		log.Fatalf("error saving session: %v", err)
 	}
@@ -145,6 +155,7 @@ func NewConnection(username string, done chan models.Result) {
 
 func login(wac *whatsapp.Conn, sessionName string) error {
 	// load saved session
+	//fmt.Printf("wac %v", wac.Info.Wid)
 	session, err := readSession(sessionName)
 	if err == nil {
 		// restore session
@@ -169,7 +180,7 @@ func login(wac *whatsapp.Conn, sessionName string) error {
 	}
 
 	// save session
-	err = writeSession(session, sessionName)
+	err = writeSession(session, wac.Info.Wid)
 	if err != nil {
 		return fmt.Errorf("error saving session: %v", err)
 	}
@@ -188,7 +199,7 @@ func readSession(sessionName string) (whatsapp.Session, error) {
 	//file, err := os.Create(filename)
 	file, err := os.Open(filename)
 	if err != nil {
-		fmt.Printf("Error opening session file %v", err)
+		//fmt.Printf("Error opening session file %v", err)
 		return session, err
 	}
 

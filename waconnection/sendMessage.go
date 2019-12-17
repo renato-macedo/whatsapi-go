@@ -9,7 +9,7 @@ import (
 )
 
 // SendTextMessage recebe a conexao, o número destinatário e o texto da mensagem
-func SendTextMessage(wac *whatsapp.Conn, number string, text string) {
+func SendTextMessage(wac *whatsapp.Conn, number string, text string) error {
 
 	message := whatsapp.TextMessage{
 		Info: whatsapp.MessageInfo{
@@ -21,10 +21,12 @@ func SendTextMessage(wac *whatsapp.Conn, number string, text string) {
 	msgID, err := wac.Send(message)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error sending message: %v", err)
-		os.Exit(1)
-	} else {
-		fmt.Println("Message Sent -> ID : " + msgID)
+		return err
+
+		//os.Exit(1)
 	}
+	fmt.Println("Message Sent -> ID : " + msgID)
+	return nil
 }
 
 // SendImageMessage recebe a conexao, o número destinatário e a url da imagem

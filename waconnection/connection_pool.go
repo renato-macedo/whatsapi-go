@@ -1,3 +1,0 @@
-package waconnection
-
-func CreateConnectionPool() {}
