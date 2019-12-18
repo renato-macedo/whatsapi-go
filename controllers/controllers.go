@@ -57,7 +57,7 @@ func SendText(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, response)
 	}
 
-	message := &models.Message{}
+	message := &models.TextMessageDTO{}
 
 	err = c.Bind(message)
 
@@ -89,4 +89,43 @@ func GetConnections(c echo.Context) error {
 }
 
 // SendImage handles the request to send a image
-//func SendImage(c echo.Context) error {}
+func SendImage(c echo.Context) error {
+	message := &models.ImageMessageDTO{}
+
+	err := c.Bind(message)
+
+	if err != nil {
+		fmt.Printf("%v", err)
+		return err
+	}
+
+	id := c.Param("id")
+	connectionIsActive, err := utils.ConnectionIsActive(waconnection.Connections, id)
+	if err != nil {
+		response := &models.Response{Success: false, Message: "Erro no servidor"}
+		return c.JSON(http.StatusInternalServerError, response)
+	}
+
+	// check if the id exists
+	if !connectionIsActive {
+		response := &models.Response{Success: false, Message: "Conexao não está ativa"}
+		return c.JSON(http.StatusInternalServerError, response)
+	}
+
+	wac := utils.FindConnectionByID(waconnection.Connections, id)
+	if wac == nil {
+		return c.JSON(http.StatusOK, &models.Response{Success: false, Message: "Could not find connection"})
+	}
+	img, err := utils.DownloadImage(message.URL)
+	if err != nil {
+		return err
+	}
+	//img, err := os.Open("img/example1.jpeg")
+	err = waconnection.SendImageMessage(wac, message.Number, img, "🥱")
+
+	if err != nil {
+		return c.JSON(http.StatusOK, &models.Response{Success: false, Message: "Something is wrong with the whatsapp"})
+	}
+
+	return c.JSON(http.StatusOK, &models.Response{Success: true, Message: "Message sent"})
+}

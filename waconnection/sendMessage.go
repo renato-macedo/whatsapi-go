@@ -30,4 +30,22 @@ func SendTextMessage(wac *whatsapp.Conn, number string, text string) error {
 }
 
 // SendImageMessage recebe a conexao, o número destinatário e a url da imagem
-func SendImageMessage(wac *whatsapp.Conn, number string, filename string) {}
+func SendImageMessage(wac *whatsapp.Conn, number string, img *os.File, caption string) error {
+	msg := whatsapp.ImageMessage{
+		Info: whatsapp.MessageInfo{
+			RemoteJid: number + "@s.whatsapp.net",
+		},
+		Type:    "image/jpeg",
+		Caption: caption,
+		Content: img,
+	}
+	msgID, err := wac.Send(msg)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error sending message: %v", err)
+		return err
+	}
+	fmt.Println("Message Sent -> ID : " + msgID)
+	return nil
+
+}
