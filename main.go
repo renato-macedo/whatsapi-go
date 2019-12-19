@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 	controllers "github.com/renato-macedo/whatsapi/controllers"
 )
 
@@ -12,6 +13,7 @@ func main() {
 
 	//waconnection.NewConnection("renato")
 	e := echo.New()
+	e.Use(middleware.CORS())
 
 	e.POST("/session", controllers.CreateSession)
 	e.POST("/:id/text", controllers.SendText)

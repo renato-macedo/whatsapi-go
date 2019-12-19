@@ -9,7 +9,6 @@ import (
 	"syscall"
 	"time"
 
-	qrcodeTerminal "github.com/Baozisoftware/qrcode-terminal-go"
 	whatsapp "github.com/Rhymen/go-whatsapp"
 	models "github.com/renato-macedo/whatsapi/models"
 	"github.com/renato-macedo/whatsapi/waconnection/handlers"
@@ -31,10 +30,12 @@ func NewConnection(sessionName string, done chan models.Result) {
 	wac.AddHandler(&handlers.MessageHandler{Connection: wac})
 
 	//login or restore
-	if err := login(wac, sessionName); err != nil {
+	QRCODE := make(chan string)
+	if err := login(wac, sessionName, QRCODE); err != nil {
 		//log.Fatalf("error logging in: %v", err)
 		r.Success = false
-		r.Message = fmt.Sprintf("error logging in: %v", err)
+		//r.Message = fmt.Sprintf("error logging in: %v", err)
+		r.Message = <-QRCODE
 		done <- r
 		return
 	}
@@ -72,7 +73,7 @@ func NewConnection(sessionName string, done chan models.Result) {
 	}
 }
 
-func login(wac *whatsapp.Conn, sessionName string) error {
+func login(wac *whatsapp.Conn, sessionName string, QRCODE chan string) error {
 	// load saved session
 	//fmt.Printf("wac %v", wac.Info.Wid)
 	session, err := readSession(sessionName)
@@ -87,9 +88,11 @@ func login(wac *whatsapp.Conn, sessionName string) error {
 		// no saved session -> regular login
 		qr := make(chan string)
 		go func() {
-			terminal := qrcodeTerminal.New()
-			terminal.Get(<-qr).Print()
+			//terminal := qrcodeTerminal.New()
+			//terminal.Get(<-qr).Print()
+			QRCODE <- <-qr // kkkk
 		}()
+
 		session, err = wac.Login(qr)
 		if err != nil {
 

@@ -1,11 +1,7 @@
-### Notas
+## WhatsAPI Go
 
-Consegui salvar as sessões ativas em um slice na memória
-Funções para serem executadas quando receber mensagem de texto
+### This project wraps the [sigalor/whatsapp-web-reveng](https://github.com/Rhymen/go-whatsapp) package in an API Rest
 
-
-## TO DO
-
-  - Resolver o bug do arquivo da sessão, verificar se este arquivo é realmente necessário
-  - Desconectar de forma correta (a goroutine só morre quando o usuario desconecta do whatsapp manualmente)
-  - Criar ação para quando receber imagens, videos, audios (basicamente vou ter que salvar tudo no servidor e mandar o link mas não vai dar tempo de implementar segurança no servidor) 
+## Legal
+This code is in no way affiliated with, authorized, maintained, sponsored or endorsed by WhatsApp or any of its
+affiliates or subsidiaries. This is an independent and unofficial software. Use at your own risk.
