@@ -8,6 +8,6 @@ type TextMessageDTO struct {
 
 // ImageMessageDTO is the structure that goes inside the request body
 type ImageMessageDTO struct {
-	URL    string `json:"url"`
-	Number string `json:"number"`
+	URLs   []string `json:"urls"`
+	Number string   `json:"number"`
 }

@@ -5,4 +5,8 @@ sessions/*
 
 storage/*
 !storage/.gitkeep
+
+tmp/*
+!tmp/.gitkeep
+
 *.exe
