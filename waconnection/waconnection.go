@@ -10,12 +10,13 @@ import (
 	"time"
 
 	whatsapp "github.com/Rhymen/go-whatsapp"
+	"github.com/renato-macedo/whatsapi/connections"
+	"github.com/renato-macedo/whatsapi/handlers"
 	models "github.com/renato-macedo/whatsapi/models"
-	"github.com/renato-macedo/whatsapi/waconnection/handlers"
+	utils "github.com/renato-macedo/whatsapi/utils"
 )
 
-// Connections store all active sessions
-var Connections []*whatsapp.Conn
+// connections.Connections store all active sessions
 
 // NewConnection start a new connection :)
 func NewConnection(sessionName string, done chan models.Result) {
@@ -31,7 +32,6 @@ func NewConnection(sessionName string, done chan models.Result) {
 
 	//login or restore
 	QRCODE := make(chan string)
-	//go login(wac, sessionName, QRCODE)
 	if err := login(wac, sessionName, done); err != nil {
 		//log.Fatalf("error logging in: %v", err)
 		r.Success = false
@@ -52,7 +52,7 @@ func NewConnection(sessionName string, done chan models.Result) {
 	}
 
 	// adiciona a nova conexão no slice
-	Connections = append(Connections, wac)
+	connections.Connections = append(connections.Connections, wac)
 
 	// diz para a outra goroutine que tudo deu certo
 
@@ -72,11 +72,16 @@ func NewConnection(sessionName string, done chan models.Result) {
 		//log.Fatalf("error saving session: %v", err)
 		log.Fatalf("error saving session: %v", err)
 	}
+	log.Printf("removing session %v", sessionName)
+	// sessionName needs to be a valid whatsapp number and end with 557192665847@c.us
+	connections.Connections = utils.RemoveConnection(connections.Connections, sessionName)
+	fmt.Printf("%v", connections.Connections)
 }
 
 func login(wac *whatsapp.Conn, sessionName string, done chan models.Result) error {
 	// load saved session
 	//fmt.Printf("wac %v", wac.Info.Wid)
+	var r models.Result
 	session, err := readSession(sessionName)
 	if err == nil {
 		// restore session
@@ -84,15 +89,15 @@ func login(wac *whatsapp.Conn, sessionName string, done chan models.Result) erro
 		if err != nil {
 			return fmt.Errorf("restoring failed: %v", err)
 		}
+		r.Success = false
+		r.Message = "Session restored"
 	} else {
 
 		// no saved session -> regular login
 		qr := make(chan string)
 		go func() {
-			//terminal := qrcodeTerminal.New()
-			//terminal.Get(<-qr).Print()
 			fmt.Println("to aqui")
-			var r models.Result
+
 			r.Success = true
 			r.Message = <-qr
 			done <- r
@@ -123,7 +128,7 @@ func readSession(sessionName string) (whatsapp.Session, error) {
 		fmt.Printf("Error getting the working directory %v", sessionName)
 		return session, er
 	}
-	filename := fmt.Sprintf("%v\\%v\\%v.%v", wd, "sessions", sessionName, "gob")
+	filename := fmt.Sprintf("%v\\%v\\%v.%v", wd, "sessions", sessionName, "@c.us.gob")
 	//file, err := os.Create(filename)
 	file, err := os.Open(filename)
 	if err != nil {

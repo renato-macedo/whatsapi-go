@@ -11,6 +11,8 @@ import (
 
 	whatsapp "github.com/Rhymen/go-whatsapp"
 	actions "github.com/renato-macedo/whatsapi/actions"
+	"github.com/renato-macedo/whatsapi/connections"
+	"github.com/renato-macedo/whatsapi/utils"
 )
 
 // MessageHandler is responsible for handling messages
@@ -29,9 +31,12 @@ func (h *MessageHandler) HandleError(err error) {
 		err := h.Connection.Restore()
 		if err != nil {
 			log.Fatalf("Restore failed: %v", err)
+			connections.Connections = utils.RemoveConnection(connections.Connections, h.Connection.Info.Wid)
 		}
 	} else {
 		log.Printf("error occoured: %v\n", err)
+		//waconnection.Connections
+		// connections.Connections = utils.RemoveConnection(connections.Connections, h.Connection.Info.Wid)
 	}
 }
 

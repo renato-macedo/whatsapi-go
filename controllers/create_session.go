@@ -6,7 +6,6 @@ import (
 
 	"github.com/labstack/echo"
 	models "github.com/renato-macedo/whatsapi/models"
-	utils "github.com/renato-macedo/whatsapi/utils"
 	waconnection "github.com/renato-macedo/whatsapi/waconnection"
 )
 
@@ -19,16 +18,16 @@ func CreateSession(c echo.Context) error {
 		fmt.Printf("%v", err)
 		return err
 	}
-	sessionExists, err := utils.SessionExists(SessionDTO.Name)
-	if err != nil {
-		response := &models.Response{Success: false, Message: "Erro no servidor"}
-		return c.JSON(http.StatusInternalServerError, response)
-	}
-	if sessionExists {
-		// se existir entao cria-se um objeto para se enviar na resposta
-		response := &models.Response{Success: false, Message: "Esta sessão já existe"}
-		return c.JSON(http.StatusOK, response)
-	}
+	// sessionExists, err := utils.SessionExists(SessionDTO.Name)
+	// if err != nil {
+	// 	response := &models.Response{Success: false, Message: "Erro no servidor"}
+	// 	return c.JSON(http.StatusInternalServerError, response)
+	// }
+	// if sessionExists {
+	// 	// se existir entao cria-se um objeto para se enviar na resposta
+	// 	response := &models.Response{Success: false, Message: "Esta sessão já existe"}
+	// 	return c.JSON(http.StatusOK, response)
+	// }
 
 	done := make(chan models.Result)
 	go waconnection.NewConnection(SessionDTO.Name, done)

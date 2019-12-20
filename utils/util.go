@@ -39,7 +39,7 @@ func ConnectionIsActive(Connections []*whatsapp.Conn, connectionID string) (bool
 	return false, nil
 }
 
-// FindConnectionById passa o slice de connections e o id que é o numero de telefone sem @c.us e retorna a struct da conexao
+// FindConnectionByID passa o slice de connections e o id que é o numero de telefone sem @c.us e retorna a struct da conexao
 func FindConnectionByID(Connections []*whatsapp.Conn, connectionID string) *whatsapp.Conn {
 	for _, connection := range Connections {
 		if connectionID+"@c.us" == connection.Info.Wid {
@@ -47,4 +47,19 @@ func FindConnectionByID(Connections []*whatsapp.Conn, connectionID string) *what
 		}
 	}
 	return nil
+}
+
+// RemoveConnection removes connection and return a new slice
+func RemoveConnection(Connections []*whatsapp.Conn, connectionID string) []*whatsapp.Conn {
+	var index int
+	// finding connection index
+	for i, conn := range Connections {
+		if conn.Info.Wid == connectionID {
+			index = i
+			break
+		}
+	}
+	// removing connection
+	Connections[index] = Connections[len(Connections)-1]
+	return Connections[:len(Connections)-1]
 }

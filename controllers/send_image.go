@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/labstack/echo"
+	connections "github.com/renato-macedo/whatsapi/connections"
 	models "github.com/renato-macedo/whatsapi/models"
 	utils "github.com/renato-macedo/whatsapi/utils"
 	waconnection "github.com/renato-macedo/whatsapi/waconnection"
@@ -24,7 +25,7 @@ func SendImage(c echo.Context) error {
 	}
 
 	id := c.Param("id")
-	connectionIsActive, err := utils.ConnectionIsActive(waconnection.Connections, id)
+	connectionIsActive, err := utils.ConnectionIsActive(connections.Connections, id)
 	if err != nil {
 		response := &models.Response{Success: false, Message: "Erro no servidor"}
 		return c.JSON(http.StatusInternalServerError, response)
@@ -36,7 +37,7 @@ func SendImage(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, response)
 	}
 
-	wac := utils.FindConnectionByID(waconnection.Connections, id)
+	wac := utils.FindConnectionByID(connections.Connections, id)
 	if wac == nil {
 		return c.JSON(http.StatusOK, &models.Response{Success: false, Message: "Could not find connection"})
 	}
