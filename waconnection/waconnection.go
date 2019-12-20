@@ -62,61 +62,63 @@ func NewConnection(sessionName string, done chan models.Result) {
 
 	//Disconnect safe
 	fmt.Println("Shutting down now.")
-	session, err := wac.Disconnect()
+	// session, err := wac.Disconnect()
+	_, err = wac.Disconnect()
 
 	if err != nil {
 		log.Fatalf("error disconnecting: %v\n", err)
 	}
 
-	if err := writeSession(session, wac.Info.Wid); err != nil {
-		//log.Fatalf("error saving session: %v", err)
-		log.Fatalf("error saving session: %v", err)
-	}
+	// if err := writeSession(session, wac.Info.Wid); err != nil {
+	// 	//log.Fatalf("error saving session: %v", err)
+	// 	log.Fatalf("error saving session: %v", err)
+	// }
 	log.Printf("removing session %v", sessionName)
 	// sessionName needs to be a valid whatsapp number and end with 557192665847@c.us
 	connections.Connections = utils.RemoveConnection(connections.Connections, sessionName)
 	fmt.Printf("%v", connections.Connections)
+	log.Fatalf("fechando")
 }
 
 func login(wac *whatsapp.Conn, sessionName string, done chan models.Result) error {
 	// load saved session
 	//fmt.Printf("wac %v", wac.Info.Wid)
 	var r models.Result
-	session, err := readSession(sessionName)
-	if err == nil {
-		// restore session
-		session, err = wac.RestoreWithSession(session)
-		if err != nil {
-			return fmt.Errorf("restoring failed: %v", err)
-		}
-		r.Success = false
-		r.Message = "Session restored"
-	} else {
+	// session, err := readSession(sessionName)
+	// if err == nil {
+	// 	// restore session
+	// 	session, err = wac.RestoreWithSession(session)
+	// 	if err != nil {
+	// 		return fmt.Errorf("restoring failed: %v", err)
+	// 	}
+	// 	r.Success = false
+	// 	r.Message = "Session restored"
+	// } else {
 
-		// no saved session -> regular login
-		qr := make(chan string)
-		go func() {
-			fmt.Println("to aqui")
+	// no saved session -> regular login
+	qr := make(chan string)
+	go func() {
+		fmt.Println("to aqui")
 
-			r.Success = true
-			r.Message = <-qr
-			done <- r
-			fmt.Println("agora aqui")
-		}()
+		r.Success = true
+		r.Message = <-qr
+		done <- r
+		fmt.Println("agora aqui")
+	}()
 
-		session, err = wac.Login(qr)
-		if err != nil {
-
-			return fmt.Errorf("error during login: %v", err)
-		}
-		//return err
+	// session, err := wac.Login(qr)
+	_, err := wac.Login(qr)
+	if err != nil {
+		return fmt.Errorf("error during login: %v", err)
 	}
+	//return err
+	//}
 
 	// save session
-	err = writeSession(session, wac.Info.Wid)
-	if err != nil {
-		return fmt.Errorf("error saving session: %v", err)
-	}
+	// err = writeSession(session, wac.Info.Wid)
+	// if err != nil {
+	// 	return fmt.Errorf("error saving session: %v", err)
+	// }
 
 	return err
 }

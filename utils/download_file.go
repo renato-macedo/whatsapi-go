@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 
@@ -22,29 +23,35 @@ func DownloadFile(URL string, extension string, ch chan<- *os.File) { // (*os.Fi
 	//slices := strings.Split(URL, "/")
 	uuid := fmt.Sprintf("%v", uuid.New())
 	filename := uuid + extension
-	fmt.Printf("got file %v \n", filename)
+	log.Printf("got file %v \n", filename)
 
 	file, err := os.Create("tmp/media/" + filename)
 
 	if err != nil {
-		fmt.Printf("erro ao criar o arquivo %v \n", err)
+		log.Printf("erro ao criar o arquivo %v \n", err)
 		// return nil, err
 		ch <- nil
 	}
 	defer file.Close()
 	_, err = io.Copy(file, response.Body)
 	if err != nil {
-		fmt.Printf("erro ao copiar os dados %v \n", err)
+		log.Printf("erro ao copiar os dados %v \n", err)
 		// return nil, err
 		ch <- nil
 	}
-	fmt.Println(filename)
+	log.Println(filename)
 	file, err = os.Open("tmp/media/" + filename)
 	if err != nil {
-		fmt.Printf("erro ao abrir o arquivo criado %v \n", err)
+		log.Printf("erro ao abrir o arquivo criado %v \n", err)
 		// return nil, err
 		ch <- nil
 	}
+	//defer file.Close()
 	ch <- file
+	// err = file.Close()
+	// if err != nil {
+	// 	log.Printf("erro ao fechar arquivo %v", err)
+	// }
+
 	//return file, nil
 }

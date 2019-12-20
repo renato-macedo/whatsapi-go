@@ -61,6 +61,7 @@ func SendAudioMessage(wac *whatsapp.Conn, number string, audio *os.File, isVoice
 		Content: audio,
 	}
 	msgID, err := wac.Send(msg)
+
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error sending message: %v", err)
 		return err
@@ -68,3 +69,9 @@ func SendAudioMessage(wac *whatsapp.Conn, number string, audio *os.File, isVoice
 	fmt.Println("Message Sent -> ID : " + msgID)
 	return nil
 }
+
+// func SendDocumentMessage(wac *whatsapp.Conn, number string, document *os.File) error {
+// 	msg := whatsapp.DocumentMessage{
+//
+// 	}
+// }
