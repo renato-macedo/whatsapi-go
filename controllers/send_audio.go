@@ -15,8 +15,8 @@ import (
 )
 
 // SendImage handles the request to send a image
-func SendImage(c echo.Context) error {
-	message := &models.ImageMessageDTO{}
+func SendAudio(c echo.Context) error {
+	message := &models.AudioMessageDTO{}
 
 	err := c.Bind(message)
 
@@ -42,17 +42,18 @@ func SendImage(c echo.Context) error {
 	if wac == nil {
 		return c.JSON(http.StatusOK, &models.Response{Success: false, Message: "Could not find connection"})
 	}
+
 	// criando channel para o tipo do arquivo
 	ch := make(chan *os.File)
 
 	for _, URL := range message.URLs {
 		log.Println(URL)
-		go utils.DownloadFile(URL, ".jpg", ch)
+		go utils.DownloadFile(URL, ".ogg", ch)
 	}
 
 	hasErrors := false
 	for range message.URLs {
-		err = waconnection.SendImageMessage(wac, message.Number, <-ch, message.Caption)
+		err = waconnection.SendAudioMessage(wac, message.Number, <-ch, message.VoiceMessage)
 		if err != nil {
 			hasErrors = true
 		}
@@ -62,5 +63,5 @@ func SendImage(c echo.Context) error {
 		return c.JSON(http.StatusOK, &models.Response{Success: false, Message: "Some messages were not sent"})
 	}
 
-	return c.JSON(http.StatusOK, &models.Response{Success: true, Message: "All messages sent"})
+	return c.JSON(http.StatusOK, &models.Response{Success: true, Message: "todos os audios enviados"})
 }

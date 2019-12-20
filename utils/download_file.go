@@ -9,8 +9,8 @@ import (
 	"github.com/google/uuid"
 )
 
-// DownloadImage from the given url
-func DownloadImage(URL string, ch chan<- *os.File) { // (*os.File, error)
+// DownloadFile from the given url
+func DownloadFile(URL string, extension string, ch chan<- *os.File) { // (*os.File, error)
 	response, err := http.Get(URL)
 	if err != nil {
 		fmt.Printf("erro %v", err)
@@ -21,10 +21,10 @@ func DownloadImage(URL string, ch chan<- *os.File) { // (*os.File, error)
 
 	//slices := strings.Split(URL, "/")
 	uuid := fmt.Sprintf("%v", uuid.New())
-	filename := uuid + ".jpg"
+	filename := uuid + extension
 	fmt.Printf("got file %v \n", filename)
 
-	file, err := os.Create("tmp/img/" + filename)
+	file, err := os.Create("tmp/media/" + filename)
 
 	if err != nil {
 		fmt.Printf("erro ao criar o arquivo %v \n", err)
@@ -39,7 +39,7 @@ func DownloadImage(URL string, ch chan<- *os.File) { // (*os.File, error)
 		ch <- nil
 	}
 	fmt.Println(filename)
-	file, err = os.Open("tmp/img/" + filename)
+	file, err = os.Open("tmp/media/" + filename)
 	if err != nil {
 		fmt.Printf("erro ao abrir o arquivo criado %v \n", err)
 		// return nil, err

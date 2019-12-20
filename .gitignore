@@ -6,7 +6,7 @@ sessions/*
 storage/*
 !storage/.gitkeep
 
-tmp/img/*
-!tmp/img/.gitkeep
+tmp/media/*
+!tmp/media/.gitkeep
 
 *.exe

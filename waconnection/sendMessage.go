@@ -49,3 +49,22 @@ func SendImageMessage(wac *whatsapp.Conn, number string, img *os.File, caption s
 	return nil
 
 }
+
+// SendAudioMessage etc
+func SendAudioMessage(wac *whatsapp.Conn, number string, audio *os.File, isVoiceMessage bool) error {
+	msg := whatsapp.AudioMessage{
+		Info: whatsapp.MessageInfo{
+			RemoteJid: number + "@s.whatsapp.net",
+		},
+		Ptt:     isVoiceMessage,
+		Type:    "audio/ogg; codecs=opus",
+		Content: audio,
+	}
+	msgID, err := wac.Send(msg)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error sending message: %v", err)
+		return err
+	}
+	fmt.Println("Message Sent -> ID : " + msgID)
+	return nil
+}

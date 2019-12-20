@@ -34,7 +34,7 @@ func (h *MessageHandler) HandleError(err error) {
 			connections.Connections = utils.RemoveConnection(connections.Connections, h.Connection.Info.Wid)
 		}
 	} else {
-		log.Printf("error occoured: %v\n", err)
+		log.Printf("error occoured:\t%v\n", err)
 		//waconnection.Connections
 		// connections.Connections = utils.RemoveConnection(connections.Connections, h.Connection.Info.Wid)
 	}
@@ -43,7 +43,7 @@ func (h *MessageHandler) HandleError(err error) {
 // HandleTextMessage Optional to be implemented. Implement HandleXXXMessage for the types you need.
 func (h *MessageHandler) HandleTextMessage(message whatsapp.TextMessage) {
 	actions.NotifyTextMessage(message.Info.RemoteJid, message.Text, "http://localhost:3000/go")
-	fmt.Printf("%v %v %v %v\n\t%v\n", message.Info.Timestamp, message.Info.Id, message.Info.RemoteJid, message.ContextInfo.QuotedMessageID, message.Text)
+	log.Printf("%v %v %v %v\n\t%v\n", message.Info.Timestamp, message.Info.Id, message.Info.RemoteJid, message.ContextInfo.QuotedMessageID, message.Text)
 }
 
 //HandleImageMessage Example for media handling. Video, Audio, Document are also possible in the same way
