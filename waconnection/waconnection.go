@@ -31,7 +31,8 @@ func NewConnection(sessionName string, done chan models.Result) {
 
 	//login or restore
 	QRCODE := make(chan string)
-	if err := login(wac, sessionName, QRCODE); err != nil {
+	//go login(wac, sessionName, QRCODE)
+	if err := login(wac, sessionName, done); err != nil {
 		//log.Fatalf("error logging in: %v", err)
 		r.Success = false
 		//r.Message = fmt.Sprintf("error logging in: %v", err)
@@ -39,7 +40,10 @@ func NewConnection(sessionName string, done chan models.Result) {
 		done <- r
 		return
 	}
-
+	// r.Message = <-QRCODE
+	// r.Success = true
+	// done <- r
+	fmt.Println(r.Message)
 	//verifies phone connectivity
 	pong, err := wac.AdminTest()
 
@@ -51,9 +55,6 @@ func NewConnection(sessionName string, done chan models.Result) {
 	Connections = append(Connections, wac)
 
 	// diz para a outra goroutine que tudo deu certo
-	r.Success = true
-	r.Message = "ok"
-	done <- r
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -73,7 +74,7 @@ func NewConnection(sessionName string, done chan models.Result) {
 	}
 }
 
-func login(wac *whatsapp.Conn, sessionName string, QRCODE chan string) error {
+func login(wac *whatsapp.Conn, sessionName string, done chan models.Result) error {
 	// load saved session
 	//fmt.Printf("wac %v", wac.Info.Wid)
 	session, err := readSession(sessionName)
@@ -90,7 +91,12 @@ func login(wac *whatsapp.Conn, sessionName string, QRCODE chan string) error {
 		go func() {
 			//terminal := qrcodeTerminal.New()
 			//terminal.Get(<-qr).Print()
-			QRCODE <- <-qr // kkkk
+			fmt.Println("to aqui")
+			var r models.Result
+			r.Success = true
+			r.Message = <-qr
+			done <- r
+			fmt.Println("agora aqui")
 		}()
 
 		session, err = wac.Login(qr)

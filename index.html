@@ -1,56 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Document</title>
-</head>
-<style>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  div {
-    padding: 10%;
-    
-    height: 100px;
-    width: 100px;
-  }
-  img {
-    max-width: 100%;
-    height: auto;
-  }
-  button {
-    width: 45px;
-    height: 30px;
-    border: none;
-  }
-</style>
-<body>
-  <div class="container">
-    <img id="QR" src="" alt="qr code">
-    <button onclick="Request()">Request</button>
-  </div>
-  
-  <script>
-    async function Request() {
-      var myHeaders = new Headers();
-      myHeaders.append("Content-Type", "application/json");
-      const response = await fetch('http://localhost:1323/session', {
-        headers: myHeaders,
-        method: "POST",
-        body: JSON.stringify({Name: '557192665847'})
-      })
-      const data = await response.json()
-      console.log(data.message)
-      const QRCODE = data.message;
-
-      document.getElementById("QR").src = "data:image/png;base64, " + QRCODE;
-
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+  </head>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
+    div {
+      padding: 10%;
 
-  </script>
-</body>
+      height: 100px;
+      width: 100px;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+    button {
+      width: 60px;
+      height: 40px;
+      border: none;
+    }
+  </style>
+  <body>
+    <div id="qrcode"></div>
+    <div class="container">
+      <button onclick="Request()">Request</button>
+      <button id="show" disabled>SHOW</button>
+    </div>
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+
+    <script>
+      async function Request() {
+        var myHeaders = new Headers();
+        myHeaders.append('Content-Type', 'application/json');
+        const response = await fetch('http://localhost:1323/session', {
+          headers: myHeaders,
+          method: 'POST',
+          body: JSON.stringify({ Name: '557199021566' })
+        });
+        const data = await response.json();
+        console.log(data.message);
+        if (data.success) {
+          const QRCODE = data.message;
+          new QRCode(document.getElementById('qrcode'), QRCODE);
+          const show = document.getElementById('show');
+          show.removeAttribute('disabled');
+          show.addEventListener('click', () => {
+            document.querySelector('canvas').removeAttribute('style');
+          });
+        } else {
+          alert(data.message);
+        }
+      }
+    </script>
+  </body>
 </html>

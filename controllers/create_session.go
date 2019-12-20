@@ -35,7 +35,7 @@ func CreateSession(c echo.Context) error {
 
 	result := <-done
 	if result.Success == true {
-		response := &models.Response{Success: true, Message: "Sessão criada!"}
+		response := &models.Response{Success: true, Message: result.Message}
 		return c.JSON(http.StatusCreated, response)
 	}
 	response := &models.Response{Success: false, Message: result.Message}
